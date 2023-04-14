@@ -68,7 +68,7 @@ df = df.drop('Unnamed: 0', axis=1)
 df = df.dropna()
 
 # Setting the types of each column
-df = df.astype({'crime': str, 'number': int, 'date': 'str',\
+df = df.astype({'crime': str, 'number': 'int64', 'date': 'str',\
 'location': str, 'beat': str, 'zone': str, 'neighborhood': str, 'npu': str, 'lat': str, \
 'long': str, 'type': str, 'road': str, 'city': str, 'county': str, 'state': str, 'postcode': str, 'country': str})
 
