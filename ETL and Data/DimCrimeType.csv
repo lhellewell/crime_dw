@@ -1,4 +1,4 @@
-crimetype,IndexCrimeType,IndexCrimeCategory,CrimeTypeKey
+CrimeType,IndexCrimeType,IndexCrimeCategory,CrimeTypeKey
 LARCENY-NON VEHICLE,LARCENY,PROPERTY,0
 AUTO THEFT,AUTO THEFT,PROPERTY,1
 LARCENY-FROM VEHICLE,LARCENY,PROPERTY,2

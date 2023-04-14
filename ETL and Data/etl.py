@@ -31,7 +31,7 @@ def quarter_helper(x):
 def year_helper(x):
 	return datetime.strptime(x, '%Y-%m-%d').year
 
-def datekey_helper(x):
+def Datekey_helper(x):
 	return x.replace('-', '')
 
 def indextype_helper(x):
@@ -73,67 +73,65 @@ df = df.astype({'crime': str, 'number': int, 'date': 'str',\
 'long': str, 'type': str, 'road': str, 'city': str, 'county': str, 'state': str, 'postcode': str, 'country': str})
 
 # rename columns to dimension names
-df = df.rename(columns={'type': 'locationtype', 'postcode': 'zipcode', 'zone': 'policezone', 'beat': 'patrolbeat', 'crime': 'crimetype'})
+df = df.rename(columns={'type': 'LocationType', 'postcode': 'ZipCode', 'zone': 'PoliceZone', 'beat': 'PatrolBeat', 'crime': 'CrimeType', \
+	'number': 'CrimeNumber', 'npu': 'NPU'})
+
+# Capitalise columns
+rename_object = {}
+for i in df.columns:
+	rename_object[str(i)] = str(i)[0].upper() + str(i)[1:]
+df = df.rename(columns=rename_object)
 
 # Remove the .0 at the end of zip code col after str conversion
-df['zipcode'] = df['zipcode'].apply(zip_helper)
+df['ZipCode'] = df['ZipCode'].apply(zip_helper)
 
 # Set the display option to show all columns
 #pd.set_option('display.max_columns', None)
 
 # Create a dictionary of dataframes for each dimension table
 dim_tables = {}
-dim_tables['DimCrimeType'] = df[['crimetype']].drop_duplicates()
-dim_tables['DimLocation'] = df[['lat', 'long', 'location', 'locationtype', 'road', 'neighborhood', 'zipcode', 'npu', 'patrolbeat', 'policezone', 'city', 'county', 'state', 'country']].drop_duplicates()
-dim_tables['DimDate'] = df[['date']].drop_duplicates()
-dim_tables['DimPatrolBeat'] = df[['patrolbeat', 'policezone']].drop_duplicates()
-dim_tables['DimCity'] = df[['city', 'county', 'state', 'country']].drop_duplicates()
+dim_tables['DimCrimeType'] = df[['CrimeType']].drop_duplicates()
+dim_tables['DimLocation'] = df[['Lat', 'Long', 'Location', 'LocationType', 'Road', 'Neighborhood', 'ZipCode', 'NPU', 'PatrolBeat', 'PoliceZone', 'City', 'County', 'State', 'Country']].drop_duplicates()
+dim_tables['DimDate'] = df[['Date']].drop_duplicates()
+dim_tables['DimPatrolBeat'] = df[['PatrolBeat', 'PoliceZone']].drop_duplicates()
+dim_tables['DimCity'] = df[['City', 'County', 'State', 'Country']].drop_duplicates()
 
-
-
-# Adding dimensions for the date dimension table
-dim_tables['DimDate']['DayOfWeek'] = dim_tables['DimDate']['date'].apply(dayofweek_helper)
-dim_tables['DimDate']['Month'] = dim_tables['DimDate']['date'].apply(month_helper)
-dim_tables['DimDate']['Quarter'] = dim_tables['DimDate']['date'].apply(quarter_helper)
-dim_tables['DimDate']['Year'] = dim_tables['DimDate']['date'].apply(year_helper)
+# Adding dimensions for the Date dimension table
+dim_tables['DimDate']['DayOfWeek'] = dim_tables['DimDate']['Date'].apply(dayofweek_helper)
+dim_tables['DimDate']['Month'] = dim_tables['DimDate']['Date'].apply(month_helper)
+dim_tables['DimDate']['Quarter'] = dim_tables['DimDate']['Date'].apply(quarter_helper)
+dim_tables['DimDate']['Year'] = dim_tables['DimDate']['Date'].apply(year_helper)
 
 # Adding dimensions for the crime type dimension table
-dim_tables['DimCrimeType']['IndexCrimeType'] = dim_tables['DimCrimeType']['crimetype'].apply(indextype_helper)
-dim_tables['DimCrimeType']['IndexCrimeCategory'] = dim_tables['DimCrimeType']['crimetype'].apply(indexcategory_helper)
+dim_tables['DimCrimeType']['IndexCrimeType'] = dim_tables['DimCrimeType']['CrimeType'].apply(indextype_helper)
+dim_tables['DimCrimeType']['IndexCrimeCategory'] = dim_tables['DimCrimeType']['CrimeType'].apply(indexcategory_helper)
 
 
 # Create the keys for each dimension table to be referenced as foreign keys
-dim_tables['DimDate']['DateKey'] = dim_tables['DimDate']['date'].apply(datekey_helper)
+dim_tables['DimDate']['DateKey'] = dim_tables['DimDate']['Date'].apply(Datekey_helper)
 dim_tables['DimLocation']['LocationKey'] = range(len(dim_tables['DimLocation']))
 dim_tables['DimCrimeType']['CrimeTypeKey'] = range(len(dim_tables['DimCrimeType']))
 dim_tables['DimPatrolBeat']['PatrolBeatKey'] = range(len(dim_tables['DimPatrolBeat']))
 dim_tables['DimCity']['CityKey'] = range(len(dim_tables['DimCity']))
 
+# Linking the relationships between each table
+dim_tables['DimLocation'] = pd.merge(dim_tables['DimLocation'], dim_tables['DimPatrolBeat'], on=['PatrolBeat', 'PoliceZone'])
+dim_tables['DimLocation'] = pd.merge(dim_tables['DimLocation'], dim_tables['DimCity'], on=['City', 'County', 'State', 'Country'])
+fact_table = pd.merge(df, dim_tables['DimDate'], on='Date')
+fact_table = pd.merge(fact_table, dim_tables['DimCrimeType'], on='CrimeType')
+fact_table = pd.merge(fact_table, dim_tables['DimLocation'], on=['Lat', 'Long', 'Location', 'LocationType', 'Road', 'Neighborhood', 'ZipCode', 'PatrolBeat', 'NPU', 'PoliceZone', 'City', 'County', 'State', 'Country'])
+
+# Sort the crimes by Date 
+fact_table = fact_table.sort_values(by='Date')
+
+# Dropping dimensions that were products of merges
+fact_table = fact_table[['CrimeNumber', 'DateKey', 'CrimeTypeKey', 'LocationKey']]
+dim_tables['DimLocation'] = dim_tables['DimLocation'].drop(['PatrolBeat', 'PoliceZone', 'City', 'County', 'State', 'Country'], axis=1)
+
 # Write each dimension table to a separate CSV file
 for name, table in dim_tables.items():
     table.to_csv(f'{name}.csv', index=False)
 
-# Linking the relationships between each table
-dim_tables['DimLocation'] = pd.merge(dim_tables['DimLocation'], dim_tables['DimPatrolBeat'], on=['patrolbeat', 'policezone'])
-dim_tables['DimLocation'] = pd.merge(dim_tables['DimLocation'], dim_tables['DimCity'], on=['city', 'county', 'state', 'country'])
-fact_table = pd.merge(df, dim_tables['DimDate'], on='date')
-fact_table = pd.merge(fact_table, dim_tables['DimCrimeType'], on='crimetype')
-fact_table = pd.merge(fact_table, dim_tables['DimLocation'], on=['lat', 'long', 'location', 'locationtype', 'road', 'neighborhood', 'zipcode', 'patrolbeat', 'npu', 'policezone', 'city', 'county', 'state', 'country'])
-
-# Sort the crimes by date 
-fact_table = fact_table.sort_values(by='date')
-
-# Dropping dimensions that were products of merges
-fact_table = fact_table[['number', 'DateKey', 'CrimeTypeKey', 'LocationKey']]
-dim_tables['DimLocation'] = dim_tables['DimLocation'].drop(['patrolbeat', 'policezone', 'city', 'county', 'state', 'country'], axis=1)
-
 # Write the fact table to a CSV file
 fact_table.to_csv('FactCrimes.csv', index=False)
-
-print(dim_tables['DimCrimeType'].columns)
-print(dim_tables['DimDate'].columns)
-print(dim_tables['DimLocation'].columns)
-print(dim_tables['DimPatrolBeat'].columns)
-print(dim_tables['DimCity'].columns)
-print(fact_table.columns)
 
