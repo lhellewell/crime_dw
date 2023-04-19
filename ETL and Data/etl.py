@@ -8,8 +8,12 @@ def main():
 	dim_tables, fact_table = transform(df)
 	load(dim_tables, fact_table)
 
-if __name__ == "__main__":
-    main()
+	# print(dim_tables['DimLocation'])
+	# print(dim_tables['DimDate'])
+	# print(dim_tables['DimPatrolBeat'])
+	# print(dim_tables['DimCrimeType'])
+	# print(dim_tables['DimCity'])
+	# print(fact_table)
 
 
 # Helper functions
@@ -150,3 +154,5 @@ def load(dim_tables, fact_table):
 	# Write the fact table to a CSV file
 	fact_table.to_csv('FactCrimes.csv', index=False)
 
+if __name__ == "__main__":
+    main()
