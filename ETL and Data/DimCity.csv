@@ -1,4 +1,3 @@
-City,County,State,Country,CityKey
-Atlanta,Fulton County,Georgia,United States,0
-Atlanta,DeKalb County,Georgia,United States,1
-Sandy Springs,Fulton County,Georgia,United States,2
+CityKey,City,County,State,Country
+0,Atlanta,Fulton County,Georgia,United States
+1,Atlanta,DeKalb County,Georgia,United States
