@@ -105,7 +105,8 @@ def transform(df):
 	# Create a dictionary of dataframes for each dimension table
 	dim_tables = {}
 	dim_tables['DimCrimeType'] = df[['CrimeType']].drop_duplicates()
-	dim_tables['DimLocation'] = df[['Lat', 'Long', 'Location', 'LocationType', 'Road', 'Neighborhood', 'ZipCode', 'NPU', 'PatrolBeat', 'City', 'County', 'State', 'Country']].drop_duplicates()
+	dim_tables['DimLocation'] = df[['Lat', 'Long', 'Location', 'LocationType', 'Road', 'Neighborhood', 'ZipCode', 'NPU',\
+	'PatrolBeat', 'City', 'County', 'State', 'Country']].drop_duplicates()
 	dim_tables['DimDate'] = df[['Date']].drop_duplicates()
 	dim_tables['DimPatrolBeat'] = df[['PatrolBeat']].drop_duplicates()
 	dim_tables['DimCity'] = df[['City', 'County', 'State', 'Country']].drop_duplicates()
@@ -118,7 +119,6 @@ def transform(df):
 
 	# Adding fields for the PatrolBeat dimension table
 	dim_tables['DimPatrolBeat']['PoliceZone'] = dim_tables['DimPatrolBeat']['PatrolBeat'].apply(zone_helper)
-
 
 	# Adding fields for the crime type dimension table
 	dim_tables['DimCrimeType']['IndexCrimeType'] = dim_tables['DimCrimeType']['CrimeType'].apply(indextype_helper)
