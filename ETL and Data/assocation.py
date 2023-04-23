@@ -27,9 +27,6 @@ df = pd.merge(df, case_key, on=['Neighborhood', 'Date'])
 nested_table = df[['CaseKey', 'CrimeType']].drop_duplicates()
 case_table = df[['CrimeNumber', 'CaseKey', 'Date', 'Neighborhood']].drop_duplicates()
 
-#print(nested_table)
-#print(case_table)
-
 # Write the views to a CSV file
 case_table.to_csv('CaseTable.csv', index=False)
 nested_table.to_csv('NestedTable.csv', index=False)

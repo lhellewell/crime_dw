@@ -21,7 +21,7 @@ GO
 
 Create table CaseTable
 (
-CrimeNumber bigint primary key ,
+CrimeNumber bigint primary key,
 CaseKey int,
 Date varchar(20) not null,
 Neighborhood varchar(50) not null,
